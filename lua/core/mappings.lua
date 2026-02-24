@@ -9,11 +9,15 @@ vim.keymap.set("n", "<c-k>", ":wincmd k<CR>")
 vim.keymap.set("n", "<c-j>", ":wincmd j<CR>")
 vim.keymap.set("n", "<c-h>", ":wincmd h<CR>")
 vim.keymap.set("n", "<c-l>", ":wincmd l<CR>")
-vim.keymap.set("n", "<leader>/", ":CommentToggle<CR>")
 
 -- Splits
 vim.keymap.set("n", "|", ":vsplit<CR>")
 vim.keymap.set("n", "\\", ":split<CR>")
+
+-- Comments
+vim.keymap.set("n", "<leader>cl", "gcc", { remap = true, desc = "Comment line" })
+vim.keymap.set("v", "<leader>c", "gc", { remap = true, desc = "Comment selection" })
+vim.keymap.set("n", "<leader>c", "gc", { remap = true, desc = "Comment operator" })
 
 -- Other
 vim.keymap.set("n", "<leader>w", ":w<CR>")
@@ -26,10 +30,10 @@ vim.keymap.set("n", "<leader>h", ":nohlsearch<CR>")
 vim.keymap.set("n", "<Tab>", ":BufferLineCycleNext<CR>")
 vim.keymap.set("n", "<s-Tab>", ":BufferLineCyclePrev<CR>")
 
--- Terminal
-vim.keymap.set("n", "<leader>tf", ":ToggleTerm direction=float<CR>")
-vim.keymap.set("n", "<leader>th", ":ToggleTerm direction=horizontal<CR>")
-vim.keymap.set("n", "<leader>tv", ":ToggleTerm direction=vertical size=40<CR>")
+-- -- Terminal
+-- vim.keymap.set("n", "<leader>tf", ":ToggleTerm direction=float<CR>")
+-- vim.keymap.set("n", "<leader>th", ":ToggleTerm direction=horizontal<CR>")
+-- vim.keymap.set("n", "<leader>tv", ":ToggleTerm direction=vertical size=40<CR>")
 
 -- Movement selected lines
 vim.keymap.set("v", "<A-j", ":m .+1<CR>==")
