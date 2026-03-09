@@ -2,16 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [ "main" ]
   pull_request:
-    branches: [main, master]
+    branches: [ "main" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        neovim-version: ['stable', 'nightly']
+        neovim-version: ["stable", "nightly"]
 
     steps:
       - name: Checkout
