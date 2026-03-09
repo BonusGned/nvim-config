@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        neovim-version: ['stable', 'nightly']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.neovim-version }}
+
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v12
+        with:
+          luaVersion: "5.1"
+
+      - name: Setup LuaRocks
+        uses: leafo/gh-actions-luarocks@v6
+
+      - name: Install luacheck
+        run: luarocks install luacheck
+
+      - name: Lint Lua files
+        run: |
+          luacheck lua/
+
+      - name: Verify Neovim config loads
+        run: |
+          nvim --headless -u init.lua -c "qa" 2>&1 | tee output.log
+          if grep -qi "error" output.log; then
+            echo "Neovim configuration failed to load"
+            exit 1
+          fi
+
+      - name: Run Neovim health check
+        run: |
+          nvim --headless -c "try | healthcheck | catch | echo v:exception | endtry" -c "qa"
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Lua
+        uses: leafo/gh-actions-lua@v12
+        with:
+          luaVersion: "5.1"
+
+      - name: Setup LuaRocks
+        uses: leafo/gh-actions-luarocks@v6
+
+      - name: Install luasec
+        run: luarocks install luasec
+
+      - name: Security scan - Suspicious patterns
+        run: |
+          echo "=== Scanning for suspicious Lua patterns ==="
+          echo ""
+          
+          # Check for os.execute calls
+          echo "Checking for os.execute/os.spawn..."
+          grep -rn "os\.execute\|os\.spawn\|io\.popen" lua/ || echo "  ✓ No os.execute/os.spawn/io.popen found"
+          
+          # Check for loadstring (potential code injection)
+          echo "Checking for loadstring/load..."
+          grep -rn "loadstring\|load(" lua/ || echo "  ✓ No loadstring/load found"
+          
+          # Check for http requests without validation
+          echo "Checking for raw curl/wget calls..."
+          grep -rn "curl\|wget" lua/ || echo "  ✓ No raw curl/wget found"
+          
+          # Check for base64 encoded strings (potential obfuscation)
+          echo "Checking for base64 encoding..."
+          grep -rn "base64" lua/ || echo "  ✓ No base64 encoding found"
+          
+          echo ""
+          echo "=== Security scan complete ==="
+
+      - name: Audit lazy.nvim plugins
+        run: |
+          echo "=== Auditing plugin configurations ==="
+          echo ""
+          
+          # Check for plugins with suspicious sources
+          if grep -rn "git@github.com" lua/plugins/; then
+            echo "  ⚠ Warning: Found SSH git URLs (should use HTTPS)"
+          else
+            echo "  ✓ All plugin URLs use HTTPS"
+          fi
+          
+          # Check for non-GitHub sources
+          if grep -rn "url.*=.*['\"]" lua/plugins/ | grep -v "github.com"; then
+            echo "  ⚠ Warning: Found non-GitHub plugin sources"
+          else
+            echo "  ✓ All plugins from GitHub"
+          fi
+          
+          echo ""
+          echo "=== Plugin audit complete ==="
+
+      - name: Check for hardcoded secrets/tokens
+        run: |
+          echo "=== Checking for hardcoded secrets ==="
+          echo ""
+          
+          # Common secret patterns
+          PATTERNS="api[_-]?key|token|secret|password|credential|auth"
+          
+          if grep -rniE "$PATTERNS" lua/ --include="*.lua" | grep -v "^\s*--"; then
+            echo "  ⚠ Warning: Potential hardcoded credentials found"
+            grep -rniE "$PATTERNS" lua/ --include="*.lua" | grep -v "^\s*--"
+          else
+            echo "  ✓ No obvious hardcoded secrets found"
+          fi
+          
+          echo ""
+          echo "=== Secret scan complete ==="
+
+  dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate lazy-lock.json
+        run: |
+          echo "=== Validating plugin lock file ==="
+          
+          if [ -f "lazy-lock.json" ]; then
+            echo "  ✓ lazy-lock.json exists"
+            
+            # Check if JSON is valid
+            if python3 -c "import json; json.load(open('lazy-lock.json'))" 2>/dev/null; then
+              echo "  ✓ Valid JSON format"
+            else
+              echo "  ✗ Invalid JSON format"
+              exit 1
+            fi
+            
+            # List all pinned plugins
+            echo ""
+            echo "Pinned plugins:"
+            python3 -c "
+import json
+with open('lazy-lock.json') as f:
+    data = json.load(f)
+    for plugin, info in data.get('plugins', {}).items():
+            commit = info.get('commit', 'unknown')[:8]
+            print(f'  - {plugin}@{commit}')
+"
+          else
+            echo "  ✗ lazy-lock.json not found"
+            exit 1
+          fi
