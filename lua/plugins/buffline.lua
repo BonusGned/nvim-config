@@ -21,7 +21,7 @@ return {
                     left_trunc_marker = "",
                     right_trunc_marker = "",
                     diagnostics = "nvim_lsp",
-                    diagnostics_indicator = function(count, level, diagnostics_dict, context)
+                    diagnostics_indicator = function(_count, _level, diagnostics_dict, _context)
                         local s = " "
                         for e, _ in pairs(diagnostics_dict) do
                             local sym = e == "error" and " " or (e == "warning" and " " or " ")

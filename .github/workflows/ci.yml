@@ -35,8 +35,7 @@ jobs:
         run: luarocks install luacheck
 
       - name: Lint Lua files
-        run: |
-          luacheck lua/
+        run: luacheck lua/
 
       - name: Verify Neovim config loads
         run: |

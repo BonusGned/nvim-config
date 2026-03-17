@@ -1,7 +1,7 @@
 return {
-	{ "Djancyp/outline" ,
+	{ "Djancyp/outline",
     config = function()
         require("outline").setup()
-    end,    
+    end,
   }
 }
