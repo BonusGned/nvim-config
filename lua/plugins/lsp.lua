@@ -39,7 +39,7 @@ return {
                     vim.keymap.set("n", "<leader>ds", goto_source_definition, opts)
                 end,
                 handlers = {
-                    ["workspace/executeCommand"] = function(_err, result, ctx, _config)
+                    ["workspace/executeCommand"] = function(_, result, ctx, _)
                         if ctx.params.command ~= "_typescript.goToSourceDefinition" then
                             return
                         end

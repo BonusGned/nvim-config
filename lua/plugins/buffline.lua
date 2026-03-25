@@ -6,9 +6,6 @@ return {
         config = function()
             local bufferline = require("bufferline")
 
-            local gray = "#585b70"
-            local links = "#89dceb"
-
             bufferline.setup({
                 options = {
                     mode = "buffers",
@@ -33,13 +30,13 @@ return {
                 },
                 highlights = {
                     background = {
-                        fg = gray,
+                        fg = "#585b70",
                     },
                     buffer_selected = {
-                        fg = links,
+                        fg = "#89dceb",
                     },
                     buffer_visible = {
-                        fg = gray,
+                        fg = "#585b70",
                     },
                     separator = {
                         bg = "#1e1e2e",

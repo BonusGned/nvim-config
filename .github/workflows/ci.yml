@@ -39,7 +39,7 @@ jobs:
 
       - name: Verify Neovim config loads
         run: |
-          nvim --headless -u init.lua -c "qa" 2>&1 | tee output.log
+          nvim --headless -c "luafile init.lua" -c "quitall" 2>&1 | tee output.log
           if grep -qi "error" output.log; then
             echo "Neovim configuration failed to load"
             exit 1
@@ -47,7 +47,7 @@ jobs:
 
       - name: Run Neovim health check
         run: |
-          nvim --headless -c "try | healthcheck | catch | echo v:exception | endtry" -c "qa"
+          nvim --headless -c "luafile init.lua" -c "try | healthcheck | catch | echo v:exception | endtry" -c "quitall"
 
   security:
     runs-on: ubuntu-latest
